@@ -1,5 +1,7 @@
+'use client'
+
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import { Search, MessageSquare, Phone } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import type { AuthEvent, Customer } from '../lib/types'
@@ -160,7 +162,7 @@ export function AuthActivity() {
                 <div>
                   {r.customer ? (
                     <Link
-                      to={`/customers/${r.customer.cid}`}
+                      href={`/customers/${r.customer.cid}`}
                       style={{ color: 'var(--text)', textDecoration: 'none' }}
                     >
                       {r.customer.first_name} {r.customer.last_name}

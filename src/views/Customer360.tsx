@@ -1,5 +1,8 @@
+'use client'
+
 import { useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import Link from 'next/link'
+import { useParams } from 'next/navigation'
 import {
   MapPin,
   ShieldCheck,
@@ -838,7 +841,7 @@ function QuotesActivityTab({
           eyebrow="Quoting"
           title="In-flight Quotes"
           right={
-            <Link to="/quotes" style={{ fontSize: 12, color: 'var(--sky)', textDecoration: 'none' }}>
+            <Link href="/quotes" style={{ fontSize: 12, color: 'var(--sky)', textDecoration: 'none' }}>
               Start a quote <ArrowUpRight size={12} style={{ verticalAlign: -1 }} />
             </Link>
           }

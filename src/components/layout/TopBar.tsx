@@ -1,4 +1,7 @@
-import { useLocation, Link } from 'react-router-dom'
+'use client'
+
+import { usePathname } from 'next/navigation'
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import type { Customer } from '../../lib/types'
@@ -14,7 +17,7 @@ const TITLES: Record<string, string> = {
 }
 
 export function TopBar() {
-  const { pathname } = useLocation()
+  const pathname = usePathname() ?? '/'
   const customerMatch = pathname.match(/^\/customers\/([^/]+)$/)
   const id = customerMatch?.[1]
 
@@ -72,7 +75,7 @@ export function TopBar() {
         </div>
         {activeCustomer && (
           <Link
-            to={`/customers/${activeCustomer.cid}`}
+            href={`/customers/${activeCustomer.cid}`}
             style={{
               display: 'inline-flex',
               gap: 8,

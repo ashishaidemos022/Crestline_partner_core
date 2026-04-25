@@ -1,5 +1,7 @@
+'use client'
+
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import { Search, ArrowRight } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import type { Policy, Customer } from '../lib/types'
@@ -111,7 +113,7 @@ export function PolicyCenter() {
           return (
             <Link
               key={r.id}
-              to={r.customer ? `/customers/${r.customer.cid}` : '#'}
+              href={r.customer ? `/customers/${r.customer.cid}` : '#'}
               style={{
                 display: 'grid',
                 gridTemplateColumns: '1.2fr 1.4fr 0.6fr 0.8fr 0.8fr 1fr 0.8fr 0.3fr',

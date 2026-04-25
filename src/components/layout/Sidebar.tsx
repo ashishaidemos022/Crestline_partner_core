@@ -1,4 +1,7 @@
-import { NavLink } from 'react-router-dom'
+'use client'
+
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard,
   Users,
@@ -22,6 +25,7 @@ const ITEMS: Item[] = [
 ]
 
 export function Sidebar() {
+  const pathname = usePathname() ?? '/'
   return (
     <aside
       style={{
@@ -97,32 +101,34 @@ export function Sidebar() {
         </div>
       </div>
       <nav style={{ display: 'flex', flexDirection: 'column', padding: '12px 0' }}>
-        {ITEMS.map(({ to, icon: Icon, label }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={to === '/'}
-            style={({ isActive }) => ({
-              display: 'flex',
-              alignItems: 'center',
-              gap: 14,
-              padding: '10px 22px',
-              color: isActive ? 'var(--accent-deep)' : 'var(--muted)',
-              borderLeft: `3px solid ${isActive ? 'var(--accent)' : 'transparent'}`,
-              background: isActive
-                ? 'linear-gradient(90deg, rgba(182, 84, 51, 0.12), transparent)'
-                : 'transparent',
-              textDecoration: 'none',
-              whiteSpace: 'nowrap',
-              transition: 'color 150ms, background 150ms',
-              fontSize: 13,
-              fontWeight: isActive ? 700 : 500,
-            })}
-          >
-            <Icon size={18} />
-            <span>{label}</span>
-          </NavLink>
-        ))}
+        {ITEMS.map(({ to, icon: Icon, label }) => {
+          const isActive = to === '/' ? pathname === '/' : pathname.startsWith(to)
+          return (
+            <Link
+              key={to}
+              href={to}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 14,
+                padding: '10px 22px',
+                color: isActive ? 'var(--accent-deep)' : 'var(--muted)',
+                borderLeft: `3px solid ${isActive ? 'var(--accent)' : 'transparent'}`,
+                background: isActive
+                  ? 'linear-gradient(90deg, rgba(182, 84, 51, 0.12), transparent)'
+                  : 'transparent',
+                textDecoration: 'none',
+                whiteSpace: 'nowrap',
+                transition: 'color 150ms, background 150ms',
+                fontSize: 13,
+                fontWeight: isActive ? 700 : 500,
+              }}
+            >
+              <Icon size={18} />
+              <span>{label}</span>
+            </Link>
+          )
+        })}
       </nav>
       <div style={{ marginTop: 'auto', padding: '12px 20px', borderTop: '1px solid var(--border)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}>

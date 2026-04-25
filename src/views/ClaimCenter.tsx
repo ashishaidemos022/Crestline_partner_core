@@ -1,5 +1,7 @@
+'use client'
+
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import { AlertTriangle, CalendarDays, MapPin, X } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { supabase } from '../lib/supabase'
@@ -329,7 +331,7 @@ function ClaimDrawer({ claim, onClose }: { claim: ClaimRow; onClose: () => void 
       {claim.customer && (
         <div style={{ marginTop: 18 }}>
           <Link
-            to={`/customers/${claim.customer.cid}`}
+            href={`/customers/${claim.customer.cid}`}
             style={{
               display: 'flex',
               alignItems: 'center',

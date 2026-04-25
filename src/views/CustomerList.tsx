@@ -1,5 +1,7 @@
+'use client'
+
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import { Search, ArrowRight, Phone, Mail, AlertTriangle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import type { Customer, Policy, Claim, BillingAccount } from '../lib/types'
@@ -146,7 +148,7 @@ export function CustomerList() {
           return (
             <Link
               key={r.cid}
-              to={`/customers/${r.cid}`}
+              href={`/customers/${r.cid}`}
               style={{
                 display: 'grid',
                 gridTemplateColumns: '2fr 1.2fr 1fr 1fr 1.2fr 1fr 80px',

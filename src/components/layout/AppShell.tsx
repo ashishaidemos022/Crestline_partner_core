@@ -1,11 +1,13 @@
+'use client'
+
 import type { ReactNode } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useLocation } from 'react-router-dom'
+import { usePathname } from 'next/navigation'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { pathname } = useLocation()
+  const pathname = usePathname() ?? '/'
   return (
     <div style={{ display: 'flex', minHeight: '100vh', position: 'relative' }}>
       <Sidebar />

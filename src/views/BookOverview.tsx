@@ -1,5 +1,7 @@
+'use client'
+
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { FileText, ShieldAlert, AlertTriangle, Wallet, ArrowRight } from 'lucide-react'
 import { supabase } from '../lib/supabase'
@@ -169,7 +171,7 @@ export function BookOverview() {
             eyebrow="ClaimCenter"
             title="Recent FNOL"
             right={
-              <Link to="/claims" style={{ fontSize: 12, color: 'var(--sky)', textDecoration: 'none' }}>
+              <Link href="/claims" style={{ fontSize: 12, color: 'var(--sky)', textDecoration: 'none' }}>
                 View all →
               </Link>
             }
@@ -220,7 +222,7 @@ export function BookOverview() {
             eyebrow="BillingCenter"
             title="Delinquency Watchlist"
             right={
-              <Link to="/billing" style={{ fontSize: 12, color: 'var(--sky)', textDecoration: 'none' }}>
+              <Link href="/billing" style={{ fontSize: 12, color: 'var(--sky)', textDecoration: 'none' }}>
                 View all →
               </Link>
             }
@@ -236,7 +238,7 @@ export function BookOverview() {
                   transition={{ delay: i * 0.05 }}
                 >
                   <Link
-                    to={b.customer ? `/customers/${b.customer.cid}` : '/billing'}
+                    href={b.customer ? `/customers/${b.customer.cid}` : '/billing'}
                     style={{
                       display: 'grid',
                       gridTemplateColumns: '36px 1fr auto auto',
