@@ -8,6 +8,11 @@ import { TopBar } from './TopBar'
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? '/'
+
+  if (pathname === '/login') {
+    return <>{children}</>
+  }
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh', position: 'relative' }}>
       <Sidebar />

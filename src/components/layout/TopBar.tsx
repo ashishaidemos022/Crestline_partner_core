@@ -1,10 +1,12 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { LogOut } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import type { Customer } from '../../lib/types'
+import type { SessionAgent } from '../../lib/agent-types'
 
 const TITLES: Record<string, string> = {
   '/': 'Book Overview',
@@ -18,10 +20,20 @@ const TITLES: Record<string, string> = {
 
 export function TopBar() {
   const pathname = usePathname() ?? '/'
+  const router = useRouter()
   const customerMatch = pathname.match(/^\/customers\/([^/]+)$/)
   const id = customerMatch?.[1]
 
   const [activeCustomer, setActiveCustomer] = useState<Customer | null>(null)
+  const [agent, setAgent] = useState<SessionAgent | null>(null)
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then((r) => r.json())
+      .then((d) => setAgent(d.agent ?? null))
+      .catch(() => setAgent(null))
+  }, [])
+
   useEffect(() => {
     let ignore = false
     if (!id) {
@@ -41,8 +53,13 @@ export function TopBar() {
     }
   }, [id])
 
+  async function handleLogout() {
+    await fetch('/api/auth/logout', { method: 'POST' })
+    router.push('/login')
+    router.refresh()
+  }
+
   const title = id ? 'Customer 360' : TITLES[pathname] ?? 'Crestline Core'
-  const now = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
 
   return (
     <header
@@ -121,7 +138,52 @@ export function TopBar() {
             Core Sync
           </span>
         </div>
-        <div style={{ fontFamily: 'var(--font-mono)' }}>{now}</div>
+        {agent && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ textAlign: 'right', lineHeight: 1.15 }}>
+              <div style={{ color: 'var(--ink)', fontWeight: 600, fontSize: 13 }}>
+                {agent.full_name}
+              </div>
+              <div
+                style={{
+                  fontSize: 9,
+                  color: 'var(--text-muted)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.14em',
+                  fontWeight: 700,
+                }}
+              >
+                {agent.role}
+              </div>
+            </div>
+            <button
+              onClick={handleLogout}
+              title="Sign out"
+              aria-label="Sign out"
+              style={{
+                background: 'transparent',
+                border: '1px solid var(--border-2)',
+                borderRadius: 8,
+                padding: 8,
+                cursor: 'pointer',
+                color: 'var(--text-dim)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                transition: 'all 150ms',
+              }}
+              onMouseEnter={(e) => {
+                ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--accent-deep)'
+                ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--accent)'
+              }}
+              onMouseLeave={(e) => {
+                ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--text-dim)'
+                ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border-2)'
+              }}
+            >
+              <LogOut size={14} />
+            </button>
+          </div>
+        )}
       </div>
       <style>{`@keyframes topbar-pulse { 0%,100% { opacity: 1 } 50% { opacity: 0.45 } }`}</style>
     </header>
