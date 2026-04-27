@@ -29,7 +29,7 @@ async function main() {
 
   const { data, error } = await supabase
     .from('agents')
-    .update({ password_hash })
+    .update({ password_hash, must_change_password: true })
     .eq('email', emailArg.toLowerCase())
     .select('id, email, full_name')
     .maybeSingle()
@@ -44,6 +44,7 @@ async function main() {
   }
 
   console.log(`✓  Password updated for ${data.full_name} <${data.email}>`)
+  console.log(`   They will be required to change it on next login.`)
 }
 
 main().catch((e) => {

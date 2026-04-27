@@ -54,7 +54,13 @@ async function main() {
 
   const { data, error } = await supabase
     .from('agents')
-    .insert({ email, full_name: nameArg, role: roleArg, password_hash })
+    .insert({
+      email,
+      full_name: nameArg,
+      role: roleArg,
+      password_hash,
+      must_change_password: true,
+    })
     .select('id, email, full_name, role')
     .single()
 
@@ -64,7 +70,8 @@ async function main() {
   }
 
   console.log(`✓  Created agent: ${data.full_name} <${data.email}> (${data.role})`)
-  console.log(`   Share the password with them through a secure channel.`)
+  console.log(`   They will be required to change this password on first login.`)
+  console.log(`   Share the temporary password with them through a secure channel.`)
 }
 
 main().catch((e) => {

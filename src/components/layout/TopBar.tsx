@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { LogOut } from 'lucide-react'
+import { LogOut, KeyRound } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import type { Customer } from '../../lib/types'
 import type { SessionAgent } from '../../lib/agent-types'
@@ -156,6 +156,32 @@ export function TopBar() {
                 {agent.role}
               </div>
             </div>
+            <Link
+              href="/change-password"
+              title="Change password"
+              aria-label="Change password"
+              style={{
+                background: 'transparent',
+                border: '1px solid var(--border-2)',
+                borderRadius: 8,
+                padding: 8,
+                color: 'var(--text-dim)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                textDecoration: 'none',
+                transition: 'all 150ms',
+              }}
+              onMouseEnter={(e) => {
+                ;(e.currentTarget as HTMLAnchorElement).style.color = 'var(--accent-deep)'
+                ;(e.currentTarget as HTMLAnchorElement).style.borderColor = 'var(--accent)'
+              }}
+              onMouseLeave={(e) => {
+                ;(e.currentTarget as HTMLAnchorElement).style.color = 'var(--text-dim)'
+                ;(e.currentTarget as HTMLAnchorElement).style.borderColor = 'var(--border-2)'
+              }}
+            >
+              <KeyRound size={14} />
+            </Link>
             <button
               onClick={handleLogout}
               title="Sign out"

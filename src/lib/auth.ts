@@ -22,6 +22,7 @@ export async function verifySession(token: string): Promise<SessionAgent | null>
       email: payload.email as string,
       full_name: payload.full_name as string,
       role: payload.role as SessionAgent['role'],
+      must_change_password: Boolean(payload.must_change_password),
     }
   } catch {
     return null

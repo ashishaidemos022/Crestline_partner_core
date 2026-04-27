@@ -9,12 +9,15 @@ export async function middleware(req: NextRequest) {
   const agent = await verifySession(token)
   if (!agent) return redirectToLogin(req)
 
+  if (agent.must_change_password && req.nextUrl.pathname !== '/change-password') {
+    return NextResponse.redirect(new URL('/change-password', req.url))
+  }
+
   return NextResponse.next()
 }
 
 function redirectToLogin(req: NextRequest) {
-  const url = new URL('/login', req.url)
-  return NextResponse.redirect(url)
+  return NextResponse.redirect(new URL('/login', req.url))
 }
 
 export const config = {
