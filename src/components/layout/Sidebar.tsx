@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -29,7 +30,8 @@ export function Sidebar() {
   return (
     <aside
       style={{
-        width: 72,
+        width: 232,
+        flexShrink: 0,
         minHeight: '100vh',
         background: 'rgba(255, 250, 245, 0.88)',
         backdropFilter: 'blur(16px)',
@@ -41,63 +43,38 @@ export function Sidebar() {
         flexDirection: 'column',
         alignItems: 'stretch',
         padding: '16px 0',
-        transition: 'width 220ms ease',
         overflow: 'hidden',
         zIndex: 10,
       }}
-      onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.width = '232px')}
-      onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.width = '72px')}
     >
       <div
         style={{
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
-          gap: 12,
-          padding: '0 20px 16px',
+          gap: 8,
+          padding: '4px 20px 16px',
           borderBottom: '1px solid var(--border)',
         }}
       >
+        <Image
+          src="/crestline-logo.png"
+          alt="Crestline Insurance"
+          width={1402}
+          height={1122}
+          priority
+          style={{ width: '100%', height: 'auto', maxWidth: 168 }}
+        />
         <div
           style={{
-            width: 34,
-            height: 34,
-            borderRadius: 10,
-            background: 'linear-gradient(135deg, #b65433, #8f381f)',
-            display: 'grid',
-            placeItems: 'center',
-            fontFamily: 'var(--font-display)',
-            color: '#fff',
-            fontSize: 20,
-            fontWeight: 500,
-            flexShrink: 0,
-            boxShadow: '0 10px 22px rgba(182, 84, 51, 0.32)',
+            fontSize: 10,
+            color: 'var(--accent-deep)',
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            fontWeight: 700,
           }}
         >
-          C
-        </div>
-        <div style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
-          <div
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: 22,
-              letterSpacing: '-0.01em',
-              color: 'var(--ink)',
-              fontWeight: 500,
-            }}
-          >
-            Crestline
-          </div>
-          <div
-            style={{
-              fontSize: 10,
-              color: 'var(--accent-deep)',
-              letterSpacing: '0.18em',
-              textTransform: 'uppercase',
-              fontWeight: 700,
-            }}
-          >
-            Core · CSR Workbench
-          </div>
+          Core · CSR Workbench
         </div>
       </div>
       <nav style={{ display: 'flex', flexDirection: 'column', padding: '12px 0' }}>
