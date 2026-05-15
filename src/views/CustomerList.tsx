@@ -2,12 +2,13 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Search, ArrowRight, Phone, Mail, AlertTriangle } from 'lucide-react'
+import { Search, ArrowRight, Phone, Mail, AlertTriangle, UserPlus } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import type { Customer, Policy, Claim, BillingAccount } from '../lib/types'
 import { Badge } from '../components/shared/Badge'
 import { Avatar } from '../components/shared/Avatar'
 import { fmtUSD, fmtPhone } from '../lib/format'
+import { useSessionAgent } from '../hooks/useSessionAgent'
 
 const STATES = ['TX', 'CO', 'FL', 'WA', 'AZ']
 
@@ -24,6 +25,7 @@ export function CustomerList() {
   const [state, setState] = useState<string>('ALL')
   const [onlyDelinquent, setOnlyDelinquent] = useState(false)
   const [onlyClaims, setOnlyClaims] = useState(false)
+  const { isAdmin } = useSessionAgent()
 
   useEffect(() => {
     let ignore = false
@@ -62,6 +64,31 @@ export function CustomerList() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {isAdmin && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Link
+            href="/admin/customers/new"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '10px 16px',
+              borderRadius: 10,
+              border: 0,
+              background: 'linear-gradient(135deg, var(--accent), #cf7746)',
+              color: '#fff',
+              fontSize: 12,
+              fontWeight: 700,
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              textDecoration: 'none',
+              boxShadow: '0 10px 24px rgba(182, 84, 51, 0.28)',
+            }}
+          >
+            <UserPlus size={14} /> Add customer
+          </Link>
+        </div>
+      )}
       {/* Filters */}
       <div
         className="card"

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import {
   MapPin,
   ShieldCheck,
@@ -20,9 +20,13 @@ import {
   PhoneCall,
   User as UserIcon,
   Star,
+  Pencil,
+  Trash2,
+  X,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useCustomer360 } from '../hooks/useCustomer360'
+import { useSessionAgent } from '../hooks/useSessionAgent'
 import { Avatar } from '../components/shared/Avatar'
 import { Badge } from '../components/shared/Badge'
 import { CopyField } from '../components/shared/CopyField'
@@ -46,6 +50,7 @@ export function Customer360() {
   const { id } = useParams<{ id: string }>()
   const data = useCustomer360(id)
   const [tab, setTab] = useState<TabKey>('policies')
+  const { isAdmin } = useSessionAgent()
 
   if (data.loading && !data.customer) {
     return <div style={{ padding: 40, color: 'var(--text-dim)' }}>Loading customer…</div>
@@ -286,7 +291,236 @@ export function Customer360() {
         {tab === 'claims' && <ClaimsTab claims={data.claims} />}
         {tab === 'billing' && <BillingTab account={data.billingAccount} methods={data.paymentMethods} />}
         {tab === 'quotes' && <QuotesActivityTab quotes={data.quotes} authEvents={data.authEvents} />}
+
+        {isAdmin && (
+          <DangerZone
+            customerId={c.cid}
+            customerName={`${c.first_name} ${c.last_name}`}
+            counts={{
+              policies: data.policies.length,
+              claims: data.claims.length,
+              payments: data.billingAccount?.payments.length ?? 0,
+              billing: data.billingAccount ? 1 : 0,
+              paymentMethods: data.paymentMethods.length,
+            }}
+          />
+        )}
       </div>
+    </div>
+  )
+}
+
+function DangerZone({
+  customerId,
+  customerName,
+  counts,
+}: {
+  customerId: string
+  customerName: string
+  counts: { policies: number; claims: number; payments: number; billing: number; paymentMethods: number }
+}) {
+  const router = useRouter()
+  const [confirming, setConfirming] = useState(false)
+  const [typedName, setTypedName] = useState('')
+  const [deleting, setDeleting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleDelete() {
+    setDeleting(true)
+    setError(null)
+    try {
+      const res = await fetch(`/api/admin/customers/${customerId}`, { method: 'DELETE' })
+      const body = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setError(body.error ?? 'Could not delete customer')
+        setDeleting(false)
+        return
+      }
+      router.push('/customers')
+      router.refresh()
+    } catch {
+      setError('Network error — please try again')
+      setDeleting(false)
+    }
+  }
+
+  return (
+    <div
+      className="card"
+      style={{ padding: 20, borderColor: 'rgba(165, 63, 43, 0.4)', background: 'rgba(165, 63, 43, 0.04)' }}
+    >
+      <SectionHeader eyebrow="Admin · Irreversible" title="Danger zone" />
+      <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ flex: 1, minWidth: 240 }}>
+          <div style={{ fontSize: 13, color: 'var(--text)' }}>
+            Edit identity fields or remove this customer entirely. Removal cascades to all
+            associated policies, vehicles, drivers, claims, billing, payment methods, and payments.
+          </div>
+          <div style={{ marginTop: 8, fontSize: 11, color: 'var(--text-dim)', fontFamily: 'var(--font-mono)' }}>
+            {counts.policies} polic{counts.policies === 1 ? 'y' : 'ies'} · {counts.claims} claim{counts.claims === 1 ? '' : 's'} ·{' '}
+            {counts.billing} billing · {counts.payments} payment{counts.payments === 1 ? '' : 's'} ·{' '}
+            {counts.paymentMethods} method{counts.paymentMethods === 1 ? '' : 's'}
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <Link
+            href={`/admin/customers/${customerId}/edit`}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '10px 14px',
+              borderRadius: 10,
+              border: '1px solid var(--border-2)',
+              background: 'var(--surface-2)',
+              color: 'var(--text)',
+              fontSize: 12,
+              fontWeight: 700,
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              textDecoration: 'none',
+            }}
+          >
+            <Pencil size={14} /> Edit
+          </Link>
+          <button
+            onClick={() => setConfirming(true)}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '10px 14px',
+              borderRadius: 10,
+              border: '1px solid rgba(165, 63, 43, 0.5)',
+              background: 'transparent',
+              color: '#8f381f',
+              fontSize: 12,
+              fontWeight: 700,
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+            }}
+          >
+            <Trash2 size={14} /> Delete customer
+          </button>
+        </div>
+      </div>
+
+      {confirming && (
+        <div
+          onClick={() => !deleting && setConfirming(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(20, 24, 28, 0.55)',
+            backdropFilter: 'blur(4px)',
+            display: 'grid',
+            placeItems: 'center',
+            zIndex: 100,
+            padding: 24,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="card"
+            style={{ width: '100%', maxWidth: 480, padding: 24, borderColor: 'rgba(165, 63, 43, 0.5)' }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <ShieldAlert size={20} color="#8f381f" />
+                <div style={{ fontFamily: 'var(--font-heading)', fontSize: 18 }}>Delete {customerName}?</div>
+              </div>
+              <button
+                onClick={() => !deleting && setConfirming(false)}
+                aria-label="Close"
+                style={{ background: 'transparent', border: 0, color: 'var(--text-dim)', cursor: 'pointer' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.5 }}>
+              This will permanently remove the customer and cascade through{' '}
+              <b>{counts.policies}</b> polic{counts.policies === 1 ? 'y' : 'ies'},{' '}
+              <b>{counts.claims}</b> claim{counts.claims === 1 ? '' : 's'},{' '}
+              <b>{counts.billing}</b> billing account, <b>{counts.payments}</b> payment
+              {counts.payments === 1 ? '' : 's'}, and <b>{counts.paymentMethods}</b> payment method
+              {counts.paymentMethods === 1 ? '' : 's'}. This cannot be undone.
+            </div>
+            <div style={{ marginTop: 14, fontSize: 11, color: 'var(--text-dim)', letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700 }}>
+              Type the customer&apos;s name to confirm
+            </div>
+            <div style={{ marginTop: 6, background: 'var(--surface-2)', border: '1px solid var(--border-2)', borderRadius: 10, padding: '10px 14px' }}>
+              <input
+                value={typedName}
+                onChange={(e) => setTypedName(e.target.value)}
+                placeholder={customerName}
+                disabled={deleting}
+                style={{ width: '100%', background: 'transparent', border: 0, outline: 'none', color: 'var(--text)', fontSize: 14, fontFamily: 'var(--font-body)' }}
+              />
+            </div>
+            {error && (
+              <div
+                style={{
+                  marginTop: 12,
+                  padding: '10px 12px',
+                  borderRadius: 8,
+                  background: 'rgba(165, 63, 43, 0.10)',
+                  border: '1px solid rgba(165, 63, 43, 0.35)',
+                  color: '#8f381f',
+                  fontSize: 12,
+                }}
+              >
+                {error}
+              </div>
+            )}
+            <div style={{ marginTop: 18, display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setConfirming(false)}
+                disabled={deleting}
+                style={{
+                  padding: '10px 14px',
+                  borderRadius: 10,
+                  border: '1px solid var(--border-2)',
+                  background: 'transparent',
+                  color: 'var(--text-dim)',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                  cursor: deleting ? 'not-allowed' : 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting || typedName.trim() !== customerName}
+                style={{
+                  padding: '10px 14px',
+                  borderRadius: 10,
+                  border: 0,
+                  background:
+                    typedName.trim() === customerName && !deleting
+                      ? 'linear-gradient(135deg, #a53f2b, #732113)'
+                      : 'var(--surface-2)',
+                  color: typedName.trim() === customerName && !deleting ? '#fff' : 'var(--text-dim)',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                  cursor:
+                    typedName.trim() === customerName && !deleting ? 'pointer' : 'not-allowed',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                }}
+              >
+                <Trash2 size={14} /> {deleting ? 'Deleting…' : 'Delete forever'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
