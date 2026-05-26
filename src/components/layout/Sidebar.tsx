@@ -11,10 +11,12 @@ import {
   CreditCard,
   FilePlus,
   ShieldCheck,
+  UserCog,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { useSessionAgent } from '../../hooks/useSessionAgent'
 
-type Item = { to: string; icon: LucideIcon; label: string }
+type Item = { to: string; icon: LucideIcon; label: string; adminOnly?: boolean }
 const ITEMS: Item[] = [
   { to: '/', icon: LayoutDashboard, label: 'Book Overview' },
   { to: '/customers', icon: Users, label: 'Customers' },
@@ -23,10 +25,13 @@ const ITEMS: Item[] = [
   { to: '/billing', icon: CreditCard, label: 'BillingCenter' },
   { to: '/quotes', icon: FilePlus, label: 'Quotes' },
   { to: '/activity', icon: ShieldCheck, label: 'Auth & Activity' },
+  { to: '/admin/agents', icon: UserCog, label: 'Agents', adminOnly: true },
 ]
 
 export function Sidebar() {
   const pathname = usePathname() ?? '/'
+  const { isAdmin } = useSessionAgent()
+  const visibleItems = ITEMS.filter((item) => !item.adminOnly || isAdmin)
   return (
     <aside
       style={{
@@ -78,7 +83,7 @@ export function Sidebar() {
         </div>
       </div>
       <nav style={{ display: 'flex', flexDirection: 'column', padding: '12px 0' }}>
-        {ITEMS.map(({ to, icon: Icon, label }) => {
+        {visibleItems.map(({ to, icon: Icon, label }) => {
           const isActive = to === '/' ? pathname === '/' : pathname.startsWith(to)
           return (
             <Link
