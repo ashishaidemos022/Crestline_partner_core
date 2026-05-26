@@ -21,6 +21,7 @@ and you have a working CSR demo to show joint customers.
 | `/quotes` | Quotes — wizard shell, empty-state friendly |
 | `/activity` | Auth & Activity — OTP audit trail |
 | `/login` · `/change-password` | Custom auth (HS256 JWT in HttpOnly cookie, 24h) |
+| `/admin/agents` · `/admin/agents/new` · `/admin/agents/:id/edit` | **Admin role only** — manage all agents (CSR, supervisor, admin). See [Admin tools](#admin-tools). |
 | `/admin/customers/new` · `/admin/customers/:cid/edit` | **Admin role only** — provision and edit demo customers (see [Admin tools](#admin-tools)) |
 
 ## Stack
@@ -62,22 +63,31 @@ not put it behind a `NEXT_PUBLIC_*` prefix.
 Use the **same** `JWT_SECRET` locally and in your deploy environment so
 sessions issued in one place stay valid in the other.
 
-### 3. Seed at least one agent
+### 3. Seed the demo agents
 
 This app has its own `agents` table — no Supabase Auth. You need at least
 one agent row before you can log in.
 
 ```bash
-# Seed the canned demo CSRs (alice/bob/carol/dave/erin · all DemoPass123!).
+# Seed the default admin + demo CSRs.
 # Run from the crestline-insurance-demo repo.
 cd ../crestline-insurance-demo/database
 npm run seed:agents
-
-# Or create a real agent from this repo:
-npm run admin:create-agent <email> "<full name>" <role> <password>
-# role ∈ { csr, supervisor, admin }
-# Created agents are forced to change password on first login.
 ```
+
+This creates:
+
+| Email | Role | Password | Must change? |
+|---|---|---|---|
+| `admin@crestline.com` | admin | `CrestlineAdmin123!` | Yes |
+| `alice@crestline.com` | csr | `DemoPass123!` | No |
+| `bob@crestline.com` | csr | `DemoPass123!` | No |
+| `carol@crestline.com` | csr | `DemoPass123!` | No |
+| `dave@crestline.com` | csr | `DemoPass123!` | No |
+| `erin@crestline.com` | supervisor | `DemoPass123!` | No |
+
+Log in as `admin@crestline.com`, change the password, then use the
+**Agents** page in the sidebar to create additional agents via the GUI.
 
 ### 4. Run locally
 
@@ -94,7 +104,33 @@ npm run dev          # http://localhost:3000
 
 ## Admin tools
 
-Logged-in agents with `role = 'admin'` get extra UI:
+Logged-in agents with `role = 'admin'` get extra UI. All admin endpoints
+enforce the admin role server-side via `src/lib/admin-guard.ts` — the
+UI gating is just a nicety.
+
+### Agent management (`/admin/agents`)
+
+Visible as **Agents** in the sidebar for admin-role users.
+
+- **List** — table of all agents with role, active status, and actions.
+- **Add agent** — form for email, full name, role (CSR / supervisor /
+  admin), and a temporary password. New agents always get
+  `must_change_password = true`.
+- **Edit** — change name, role, or active/inactive. You cannot demote
+  or deactivate your own account (lockout guard).
+- **Reset password** — set a new temporary password; forces change on
+  next login.
+- **Delete** — type-name-to-confirm hard delete. You cannot delete
+  yourself.
+
+CLI alternatives (run from this repo):
+
+```bash
+npm run admin:create-agent <email> "<name>" <role> <password>
+npm run admin:set-password <email> <new-password>
+```
+
+### Customer management
 
 - `+ Add customer` button on `/customers` → `/admin/customers/new`. Provide
   first/last/email/phone; the server generates a TX mailing address, an
@@ -109,31 +145,25 @@ Logged-in agents with `role = 'admin'` get extra UI:
     payments, payment methods); `auth_events.customer_id` is `SET NULL`
     so audit history survives.
 
-All admin endpoints (`/api/admin/customers/**`) enforce the admin role
-server-side via `src/lib/admin-guard.ts` — the UI gating is just a
-nicety.
-
-CLI alternatives (run from this repo) for agent management:
-
-```bash
-npm run admin:create-agent <email> "<name>" <role> <password>
-npm run admin:set-password <email> <new-password>
-```
-
 ## Project layout
 
 ```
 src/
 ├─ app/                       # Next.js App Router — route handlers are thin
+│  ├─ admin/agents/           # Admin-only agent management (list, new, [id]/edit)
 │  ├─ admin/customers/        # Admin-only pages (new, [cid]/edit)
-│  ├─ api/                    # auth/* and admin/customers/*
+│  ├─ api/admin/agents/       # Agent CRUD + reset-password APIs
+│  ├─ api/admin/customers/    # Customer CRUD APIs
+│  ├─ api/auth/               # login, logout, me, change-password
 │  ├─ customers/[id]/         # Customer 360
 │  └─ <route>/page.tsx        # Wraps the matching view component
 ├─ views/                     # Page components (BookOverview, Customer360, …)
+│  └─ admin/                  # AdminGate, AgentList, NewAgent, EditAgent, …
 ├─ components/                # Shared UI (layout/, shared/, charts/)
 ├─ hooks/                     # useCustomer360, useSessionAgent
 ├─ lib/
 │  ├─ auth.ts                 # JWT sign/verify, session cookie helpers
+│  ├─ auth-server.ts          # bcrypt hashPassword / verifyPassword
 │  ├─ admin-guard.ts          # requireAdmin() for API routes
 │  ├─ supabase.ts             # browser anon client
 │  ├─ supabase-server.ts      # server-only service-role client
