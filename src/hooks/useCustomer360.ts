@@ -46,7 +46,12 @@ export function useCustomer360(id: string | undefined): Customer360 {
       supabase
         .from('policies')
         .select('*, vehicles(*), drivers(*)')
-        .eq('customer_id', id),
+        .eq('customer_id', id)
+        // Vehicles/drivers are soft-deleted by the AI Agent (status -> 'inactive'),
+        // never hard-deleted. Filter the embedded rows so removed ones don't render.
+        // Parent policy rows are preserved even when no active children match.
+        .eq('vehicles.status', 'active')
+        .eq('drivers.status', 'active'),
       supabase
         .from('claims')
         .select('*')
