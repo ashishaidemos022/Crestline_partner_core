@@ -177,6 +177,7 @@ function EditCustomerInner() {
 
           <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
             Name changes also sync to the primary named insured driver row on this customer&apos;s policies.
+            Email changes also update the billing email when it matched the old address.
           </div>
 
           {error && (

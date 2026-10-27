@@ -41,6 +41,17 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ ci
     if (emailError) return NextResponse.json({ error: emailError }, { status: 409 })
   }
 
+  // Capture the current email so billing rows that mirrored it can follow the change.
+  let previousEmail: string | null = null
+  if (patch.email) {
+    const { data: current } = await supabaseAdmin
+      .from('customers')
+      .select('email')
+      .eq('cid', cid)
+      .maybeSingle()
+    previousEmail = (current?.email as string | undefined) ?? null
+  }
+
   const { data: updated, error: updateErr } = await supabaseAdmin
     .from('customers')
     .update(patch)
@@ -72,6 +83,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ ci
         .eq('relationship', 'self')
         .eq('is_primary_named_insured', true)
     }
+  }
+
+  // Sync billing_email on billing accounts that matched the old email; leave deliberately different ones alone.
+  if (patch.email && previousEmail && previousEmail.toLowerCase() !== patch.email.toLowerCase()) {
+    await supabaseAdmin
+      .from('billing_accounts')
+      .update({ billing_email: patch.email })
+      .eq('customer_id', cid)
+      .ilike('billing_email', previousEmail)
   }
 
   return NextResponse.json({ ok: true, customer: updated })
